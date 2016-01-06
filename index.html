@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>江湖</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/flat-ui.css" rel="stylesheet">
+    <style>
+        html{
+            height:100%;
+        }
+        body{
+            height:100%;
+        }
+        #main{
+            position: relative;
+            height: 100%;
+        }
+
+        #info{
+            display: block;
+            position: absolute;
+            bottom: 0;
+            left: 15px;
+            right: 15px;
+        }
+    </style>
+</head>
+<body>
+<div id="main" class="container-fluid">
+    <div id="panel" class="row">
+        <div id="man" class="col-xs-3">
+            <div class="panel panel-info">
+                <div class="panel-heading">侠客信息</div>
+                <div class="panel-body">
+                    <ul class="list-group">
+                        <li class="list-group-item man-name">
+                            名字
+                            <span class="" v-text="man.name"></span>
+                        </li>
+                        <li class="list-group-item man-age">
+                            年龄
+                            <span class="" v-text="man.age"></span>
+                        </li>
+                        <li class="list-group-item man-force">
+                            武力
+                            <span class="" v-text="(man.force.base+man.force.add).toFixed(2)"></span>
+                        </li>
+                        <li class="list-group-item man-body">
+                            体力
+                            <span class="" v-text="(man.body.base+man.body.add).toFixed(2)"></span>
+                        </li>
+                        <li class="list-group-item man-mind">
+                            悟性
+                            <span class="" v-text="(man.mind.base+man.mind.add).toFixed(2)"></span>
+                        </li>
+                        <li class="list-group-item man-prestige">
+                            声望
+                            <a class="" data-toggle="tooltip" data-placement="right"
+                               title="{{man.prestige.num.toFixed(2)}}">{{man.prestige.level}}</a>
+                        </li>
+                        <li class="list-group-item man-martial">
+                            门派
+                            <a class="" data-toggle="tooltip" data-placement="right" title="{{man.martial.level}}">{{man.martial.name}}</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div id="choose" class="col-xs-9">
+            <ul class="nav nav-tabs">
+                <li role="presentation" v-on:click="switchTab(0)" v-bind:class="{'active':switchTabs==0}"><a>修身</a></li>
+                <li role="presentation" v-on:click="switchTab(1)" v-bind:class="{'active':switchTabs==1}"><a>齐家</a></li>
+                <li role="presentation" class="pull-right">
+                    <a>
+                        今年是公元{{1100+(time-time%12)/12}}年 {{time%12}}月
+                    </a>
+                </li>
+            </ul>
+            <template v-if="switchTabs==0">
+                <div class="panel panel-info">
+                    <div v-for="kongfu in man.kongfu" class="panel-body">
+                        <div style="overflow: auto;zoom: 1;">
+                            <span v-text="kongfu.name"></span>
+                            <button class="pull-right btn btn-info" v-on:click="learn(kongfu.name)">
+                                学习{{kongfu.name}}-{{(kongfu.proficiency).toFixed(2)}}/{{kongfu.base}}
+                            </button>
+                            <br>
+                            <span>描述：{{kongfu.describe}}</span>
+
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar"
+                                 aria-valuenow="{{(kongfu.proficiency/kongfu.base)%1*100}}" aria-valuemin="0"
+                                 aria-valuemax="100" v-bind:style="{width:(kongfu.proficiency/kongfu.base)%1*100+'%'}">
+                                {{(kongfu.proficiency/kongfu.base*100).toFixed(2)+'%'}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <template v-if="switchTabs==1">
+                <div class="panel panel-info">
+                    <div v-for="mart in martial" class="panel-body">
+                        <div style="overflow: auto;zoom: 1;">
+                            <span v-text="mart.name"></span>
+                            <button class="pull-right btn btn-info" v-on:click="join(mart.name)">
+                                加入{{mart.name}}
+                            </button>
+                            <br>
+                            <span>描述：{{mart.describe}}</span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+    <div id="info" class="panel panel-info">
+        <div class="panel-body">
+            <p v-for="info in radio.slice(-4)">{{info}}</p>
+        </div>
+    </div>
+</div>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.js"></script>
+<script src="vue.js"></script>
+<script>
+    var jianghu = new Vue({
+        el: '#main',
+        data: {
+            kongfu: [
+                {
+                    name: '基本拳脚',
+                    type: 'force',
+                    describe: '大概是和附近的小流氓打架学会的，简单粗暴',
+                    base: 5,
+                    proficiency: 0
+                },
+                {
+                    name: '慢跑',
+                    type: 'body',
+                    describe: '大概是被小流氓追杀学会的，简单粗暴',
+                    base: 5,
+                    proficiency: 0
+                },
+                {
+                    name: '三字经',
+                    type: 'mind',
+                    describe: '大概是附近的街道上捡到的，简单粗暴',
+                    base: 5,
+                    proficiency: 0
+                }
+            ],
+            man: {
+                name: 'xiaoxia',
+                age: 14,
+                force: {base: 5, add: 0},
+                body: {base: 5, add: 0},
+                mind: {base: 75, add: 0},
+                prestige: {num: 0, level: '无名小虾'},
+                achievement: [],
+                kongfu: [
+                ],
+                martial: {
+                    name: '无',
+                    level: ''
+                }
+            },
+            manLevel: [
+                {
+                    name: '无名小虾',
+                    prestige: 10
+                }
+            ],
+            martial: [
+                {
+                    name: '嵩山少林寺',
+                    describe:'后魏孝文帝时期，达摩大师在嵩山面壁9年，终成少林武术，之后这间古刹的风雨，就不为人所知了。',
+                    force: 1000,
+                    money: {
+                        deposit: 10000,
+                        income: 0
+                    },
+                    prestige: 1500,
+                    level:[
+                        {
+                            name: '沙弥',
+                            force: 5,
+                            cost: 15
+                        },
+                        {
+                            name: '般若堂弟子',
+                            force: 20,
+                            cost: 100
+                        },
+                        {
+                            name: '罗汉堂弟子',
+                            force: 100,
+                            cost: 600
+                        },
+                        {
+                            name: '达摩院执事',
+                            force: 600,
+                            cost: 4000
+                        },
+                        {
+                            name: '戒律院首座',
+                            force: 4200,
+                            cost: 30000
+                        },
+                        {
+                            name: '少林寺方丈',
+                            force: 8000,
+                            cost: 35000
+                        }
+                    ],
+                    kongfu:[
+                        {
+                            name: '少林长拳',
+                            type: 'force',
+                            describe: '少林基础入门的拳术，更注重强身健体',
+                            base: 10,
+                            proficiency: 0,
+                        }
+                    ]
+                }
+            ],
+            martailInfo: [
+                {
+                    name: '市井无声',
+                    max: [6, 3, 1, 0, 0],
+                    Level: [
+                        {
+                            name: '学徒',
+                            force: 5,
+                            cost: 15
+                        },
+                        {
+                            name: '登堂弟子',
+                            force: 20,
+                            cost: 100
+                        },
+                        {
+                            name: '入室弟子',
+                            force: 100,
+                            cost: 600
+                        }
+                    ]
+                }
+            ],
+            radio: [
+                '江湖波澜又起，不知是哪位大侠横空出世。'
+            ],
+            time: 1,
+            switchTabs: 0
+        },
+        created: function () {
+            // 初始化时间
+            this.time = 1;
+            // 初始化技能
+            this.man.kongfu = this.man.kongfu.concat(this.kongfu);
+            console.info(this.kongfu,this.man.kongfu);
+        },
+        ready: function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        },
+        methods: {
+            print:function(text){
+                this.radio.push(text);
+            },
+            addTime: function (x) {
+                if (x > 0) {
+                    this.time = this.time + x;
+                    console.info('就这么过了' + x + '个月');
+                } else {
+                    return 0
+                }
+            },
+            calcNum: function () {
+                //计算年龄和体力变化
+                var year = (this.time - this.time % 12) / 12;
+                var age = 15 + year;
+                if (age != this.man.age) {
+                    if (age <= 30) {
+                        this.man.body.base = this.man.body.base * 1.05
+                    } else {
+                        this.man.body.base = this.man.body.base * 0.99
+                    }
+                }
+                this.man.age = age;
+                //计算武力，体力，悟性
+                var add = {force: 0, body: 0, mind: 0};
+                for (var i = 0, length = this.man.kongfu.length; i < length; i++) {
+                    var kf = this.man.kongfu[i];
+                    add[kf.type] += kf.proficiency;
+                }
+                this.man.force.add = add.force;
+                this.man.body.add = add.body;
+                this.man.mind.add = add.mind;
+            },
+            learn: function (name) {
+                var intel = this.man.mind.base + this.man.mind.add;
+                for (var i = 0, length = this.man.kongfu.length; i < length; i++) {
+                    if (name == this.man.kongfu[i].name) {
+                        this.man.kongfu[i].proficiency += intel / 100 / this.man.kongfu[i].base;
+                        break;
+                    }
+                }
+                this.choose(1);
+            },
+            join:function(name){
+                //加入门派
+                var martial = this.man.martial;
+                if(martial.name == '无'){
+                    for (var i = 0, length = this.martial.length; i < length; i++) {
+                        if (name == this.martial[i].name) {
+                            this.man.martial.name = name;
+                            var myMartial = this.martial[i];
+                            for (var j=0,length2=myMartial.level.length;j<length2;j++){
+                                if(this.man.force.base+this.man.force.add >= myMartial.level[j].force){
+                                    this.man.martial.level = myMartial.level[j].name;
+                                    console.info(myMartial.level[j].name);
+                                }
+                            }
+                            this.man.kongfu= this.man.kongfu.concat(myMartial.kongfu);
+                            break;
+                        }
+                    }
+                }
+
+                this.print(this.man.name+'加入了'+this.man.martial.name+'，成为了一位'+this.man.martial.level);
+                this.choose(1);
+            },
+            choose: function (x) {
+                this.addTime(x);
+                this.calcNum();
+            },
+            switchTab: function (x) {
+                this.switchTabs = x;
+            }
+        }
+    });
+</script>
+</body>
+</html>
