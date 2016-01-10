@@ -73,7 +73,7 @@
                 <li role="presentation" v-on:click="switchTab(1)" v-bind:class="{'active':switchTabs==1}"><a>齐家</a></li>
                 <li role="presentation" class="pull-right">
                     <a>
-                        今年是公元{{1100+(time-time%12)/12}}年 {{time%12}}月
+                        今年是公元{{1100+(time-time%12)/12}}年 {{time%12+1}}月
                     </a>
                 </li>
             </ul>
@@ -83,7 +83,7 @@
                         <div style="overflow: auto;zoom: 1;">
                             <span v-text="kongfu.name"></span>
                             <button class="pull-right btn btn-info" v-on:click="learn(kongfu.name)">
-                                学习{{kongfu.name}}-{{(kongfu.proficiency).toFixed(2)}}/{{kongfu.base}}
+                                学习{{(kongfu.proficiency).toFixed(2)}}/{{kongfu.base}}
                             </button>
                             <br>
                             <span>描述：{{kongfu.describe}}</span>
@@ -91,9 +91,9 @@
                         </div>
                         <div class="progress">
                             <div class="progress-bar" role="progressbar"
-                                 aria-valuenow="{{(kongfu.proficiency/kongfu.base)%1*100}}" aria-valuemin="0"
-                                 aria-valuemax="100" v-bind:style="{width:(kongfu.proficiency/kongfu.base)%1*100+'%'}">
-                                {{(kongfu.proficiency/kongfu.base*100).toFixed(2)+'%'}}
+                                 aria-valuenow="{{(kongfu.proficiency)%1*100}}" aria-valuemin="0"
+                                 aria-valuemax="100" v-bind:style="{width:(kongfu.proficiency)%1*100+'%'}">
+                                {{(kongfu.proficiency*100).toFixed(2)+'%'}}
                             </div>
                         </div>
                     </div>
@@ -129,29 +129,6 @@
     var jianghu = new Vue({
         el: '#main',
         data: {
-            kongfu: [
-                {
-                    name: '基本拳脚',
-                    type: 'force',
-                    describe: '大概是和附近的小流氓打架学会的，简单粗暴',
-                    base: 5,
-                    proficiency: 0
-                },
-                {
-                    name: '慢跑',
-                    type: 'body',
-                    describe: '大概是被小流氓追杀学会的，简单粗暴',
-                    base: 5,
-                    proficiency: 0
-                },
-                {
-                    name: '三字经',
-                    type: 'mind',
-                    describe: '大概是附近的街道上捡到的，简单粗暴',
-                    base: 5,
-                    proficiency: 0
-                }
-            ],
             man: {
                 name: 'xiaoxia',
                 age: 14,
@@ -161,6 +138,33 @@
                 prestige: {num: 0, level: '无名小虾'},
                 achievement: [],
                 kongfu: [
+                    {
+                        name: '基本拳脚',
+                        type: 'force',
+                        equip:true,
+                        describe: '大概是和附近的小流氓打架学会的，简单粗暴',
+                        base: 5,
+                        stage:[1,0.7,0.3,0.1,0.01],
+                        proficiency: 0
+                    },
+                    {
+                        name: '慢跑',
+                        type: 'body',
+                        equip:true,
+                        describe: '大概是被小流氓追杀学会的，简单粗暴',
+                        stage:[1,0.7,0.3,0.1,0.01],
+                        base: 5,
+                        proficiency: 0
+                    },
+                    {
+                        name: '三字经',
+                        type: 'mind',
+                        equip:true,
+                        describe: '大概是附近的街道上捡到的，简单粗暴',
+                        stage:[1,0.7,0.1,0.05,0],
+                        base: 5,
+                        proficiency: 0
+                    }
                 ],
                 martial: {
                     name: '无',
@@ -257,10 +261,8 @@
         },
         created: function () {
             // 初始化时间
-            this.time = 1;
+            this.time = 0;
             // 初始化技能
-            this.man.kongfu = this.man.kongfu.concat(this.kongfu);
-            console.info(this.kongfu,this.man.kongfu);
         },
         ready: function () {
             $('[data-toggle="tooltip"]').tooltip()
@@ -293,17 +295,36 @@
                 var add = {force: 0, body: 0, mind: 0};
                 for (var i = 0, length = this.man.kongfu.length; i < length; i++) {
                     var kf = this.man.kongfu[i];
-                    add[kf.type] += kf.proficiency;
+                    add[kf.type] += kf.proficiency*kf.base;
                 }
                 this.man.force.add = add.force;
                 this.man.body.add = add.body;
                 this.man.mind.add = add.mind;
+                var ageFactor = 0;
+                if (age != this.man.age) {
+                    if (age <= 30) {
+                        ageFactor = 1.05
+                    } else if (age <= 60){
+                        ageFactor = 0.99
+                    } else if (age <= 90){
+                        ageFactor = 0.9
+                    } else{
+                        ageFactor = 0.5
+                    }
+                    this.man.body.base *= ageFactor;
+                    this.man.body.add *= ageFactor;
+                    this.man.age = age;
+                }
             },
             learn: function (name) {
-                var intel = this.man.mind.base + this.man.mind.add;
+                var mind = this.man.mind.base + this.man.mind.add;
                 for (var i = 0, length = this.man.kongfu.length; i < length; i++) {
                     if (name == this.man.kongfu[i].name) {
-                        this.man.kongfu[i].proficiency += intel / 100 / this.man.kongfu[i].base;
+                        var kf=this.man.kongfu[i];
+                        var prof = kf.proficiency;
+                        var stage = Math.floor(prof/0.5);
+                        console.info(stage,mind * kf.stage[stage]);
+                        this.man.kongfu[i].proficiency += mind * kf.stage[stage] / 100/kf.base;
                         break;
                     }
                 }
