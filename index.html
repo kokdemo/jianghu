@@ -17,9 +17,11 @@
         #story {
             padding-top: 25vh;
         }
-        #story .title{
+
+        #story .title {
             text-align: center;
         }
+
         #main {
             position: relative;
             height: 100%;
@@ -43,6 +45,7 @@
 <body>
 <div id="story" class="container center-block" v-show="!start">
     <h5 class="title">江湖</h5>
+
     <form class="form-horizontal">
         <div class="form-group">
             <label for="inputName" class="col-sm-2 col-sm-offset-2 control-label">名称</label>
@@ -53,9 +56,11 @@
         </div>
         <div class="form-group">
             <label for="infoFrom" class="col-sm-2 col-sm-offset-2 control-label">你来自</label>
+
             <div class="col-sm-6">
                 <label class="radio-inline">
-                    <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="north" v-model="man.from"> 西北边塞
+                    <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="north" v-model="man.from">
+                    西北边塞
                 </label>
                 <label class="radio-inline">
                     <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" disabled> 梁山脚下（未完成）
@@ -69,7 +74,7 @@
     </form>
     <div class="form-group">
         <div class="center-block" style="width: 135px">
-            <button class="btn btn-success" v-on:click="startGame()" >天下风云出我辈</button>
+            <button class="btn btn-success" v-on:click="startGame()">天下风云出我辈</button>
         </div>
     </div>
 </div>
@@ -128,7 +133,7 @@
                     <div v-for="kongfu in man.kongfu" class="panel-body">
                         <div style="overflow: auto;zoom: 1;">
                             <span v-text="kongfu.name"></span>
-                            <button class="pull-right btn btn-info" v-on:click="learn(kongfu.name)">
+                            <button class="pull-right btn btn-info" v-on:click="learn(kongfu.name,1)">
                                 学习{{(kongfu.proficiency).toFixed(2)}}/{{kongfu.base}}
                             </button>
                             <br>
@@ -156,6 +161,23 @@
                             </button>
                             <br>
                             <span>描述：{{mart.describe}}</span>
+
+                            <div v-if="man.martial.name == mart.name" class="btn-group btn-group-justified" role="group"
+                                 aria-label="...">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-default"
+                                            v-on:click="getMartialKongfu(man.level)">请师父传功
+                                    </button>
+                                </div>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-default" v-on:click="martialWork()">干些杂活
+                                    </button>
+                                </div>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-default" v-on:click="leaveMartial()">下山游历
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -178,7 +200,7 @@
     var jianghu = new Vue({
         el: 'body',
         data: {
-            start: false,
+            start: true,
             prestige: [
                 {num: 0, level: '无名小虾'},
                 {num: 10, level: '义气少年'},
@@ -187,7 +209,7 @@
                 {num: 10000000, level: '一代宗师'}
             ],
             man: {
-                name: '',
+                name: 'kok',
                 from: '',
                 age: 15,
                 force: {base: 5, add: 0},
@@ -223,7 +245,8 @@
                 ],
                 martial: {
                     name: '无',
-                    level: ''
+                    level: '',
+                    base: 0
                 }
             },
             martial: [
@@ -268,16 +291,18 @@
                             cost: 35000
                         }
                     ],
-                    kongfu: [
-                        {
-                            name: '少林长拳',
-                            type: 'force',
-                            describe: '少林基础入门的拳术，更注重强身健体',
-                            stage: [1, 0.6, 0.1, 0.05, 0],
-                            base: 10,
-                            proficiency: 0
-                        }
-                    ]
+                    kongfu: {
+                        '沙弥': [
+                            {
+                                name: '少林长拳',
+                                type: 'force',
+                                describe: '少林基础入门的拳术，更注重强身健体',
+                                stage: [1, 0.6, 0.1, 0.05, 0],
+                                base: 10,
+                                proficiency: 0
+                            }
+                        ]
+                    }
                 }
             ],
             radio: [
@@ -299,48 +324,63 @@
         },
         methods: {
             //开始游戏
-            startGame:function(){
-                if(this.man.name && this.man.from ){
+            startGame: function () {
+                if (this.man.name && this.man.from) {
                     this.start = true;
                     console.info('start');
-                }else{
+                } else {
                     alert('身为大侠，总得有个清楚的身世吧');
                 }
+            },
+            switchTab: function (x) {
+                this.switchTabs = x;
             },
             //在底部通知栏输出信息
             print: function (text) {
                 this.radio.unshift(text);
             },
-            //更新时间,计算年龄
-            calcAge: function (x) {
-                if (x > 0) {
-                    this.time = this.time + x;
+            //一个计算函数的入口，可以计算，更新时间，年龄，武力，体力，悟性，武功，声望，江湖等级，门派等级
+            calc: function (input) {
+                if (input.time) {
+                    //更新时间
+                    this.time += input.time
+                    var age = 15 + Math.floor(this.time / 12)
+                    if (age != this.man.age) {
+                        this.print(this.man.name + '又长大了一岁')
+                    }
+                    this.man.age = age
                 }
-                var year = Math.floor(this.time / 12);
-                var age = 15 + year;
-                if (age != this.man.age) {
-                    this.print('小虾又长大了一岁')
+                if (input.force) {
+                    this.man.force.base += input.force
                 }
-                this.man.age = age;
-            },
-            //计算武力，体力，悟性
-            calcNum: function () {
-                //每个属性分为基础和提升两部分，所有的武功都算作提升，有一些特殊事件会改变基础的部分
-                var add = {force: 0, body: 0, mind: 0};
-                for (var i = 0, length = this.man.kongfu.length; i < length; i++) {
-                    var kf = this.man.kongfu[i];
-                    add[kf.type] += kf.proficiency * kf.base;
+                if (input.body) {
+                    this.man.body.base += input.body
                 }
-                this.man.force.add = add.force;
-                this.man.body.add = add.body;
-                this.man.mind.add = add.mind;
-                //年龄修正部分先不弄了
-            },
-            //更新主角的个人声望，每次声望改变的时候调用
-            calcPrestige: function (x) {
-                var prestige = this.man.prestige;
-                if (x) {
-                    prestige.num = prestige.num + x;
+                if (input.mind) {
+                    this.man.mind.base += input.mind
+                }
+                if (input.kongfu) {
+                    var kflength = this.man.kongfu.length;
+                    for (var i = 0; i < kflength; i++) {
+                        if (input.kongfu.name === this.man.kongfu[i].name) {
+                            var kf = this.man.kongfu[i];
+                            var stage = Math.floor(kf.proficiency / 0.5);
+                            this.man.kongfu[i].proficiency += (this.man.mind.base + this.man.mind.add) * input.kongfu.num * kf.stage[stage] / 100 / kf.base;
+                            break;
+                        }
+                    }
+                    var add = {force: 0, body: 0, mind: 0};
+                    for (var i = 0; i < kflength; i++) {
+                        var kongfu = this.man.kongfu[i];
+                        add[kf.type] += kongfu.proficiency * kongfu.base;
+                    }
+                    this.man.force.add = add.force;
+                    this.man.body.add = add.body;
+                    this.man.mind.add = add.mind;
+                }
+                if (input.prestige) {
+                    var prestige = this.man.prestige;
+                    this.man.prestige.num += input.prestige;
                     for (var i = 0, length = this.prestige.length; i < length; i++) {
                         var level = this.prestige[i];
                         if (prestige > level.num) {
@@ -348,29 +388,21 @@
                         }
                     }
                 }
-            },
-            //更新主角的门派等级，目前暂定是武力值
-            calcMartialLevel: function () {
-                var martial = this.man.martial;
-                for (var i = 0, length = martial.levelInfo.length; i < length; i++) {
-                    if (this.man.force.base + this.man.force.add >= martial.levelInfo[i].force) {
-                        this.man.martial.level = martial.levelInfo[i].name;
+                if (input.martial) {
+                    var martial = this.man.martial;
+                    this.man.martial.base += input.martial;
+                    var power = (this.man.force.base + this.man.force.add) + this.man.martial.base;
+                    for (var i = 0, length = martial.levelInfo.length; i < length; i++) {
+                        if (power >= martial.levelInfo[i].force) {
+                            this.man.martial.level = martial.levelInfo[i].name;
+                        }
                     }
                 }
             },
             //学习技能
-            learn: function (name) {
-                var mind = this.man.mind.base + this.man.mind.add;
-                for (var i = 0, length = this.man.kongfu.length; i < length; i++) {
-                    if (name === this.man.kongfu[i].name) {
-                        var kf = this.man.kongfu[i];
-                        var prof = kf.proficiency;
-                        var stage = Math.floor(prof / 0.5);
-                        this.man.kongfu[i].proficiency += mind * kf.stage[stage] / 100 / kf.base;
-                        break;
-                    }
-                }
-                this.choose(1);
+            learn: function (name, num) {
+                this.calc({kongfu: {name: name, num: num}});
+                this.calc({time: 1});
             },
             joinMartial: function (name) {
                 //加入门派
@@ -381,22 +413,26 @@
                             var myMartial = this.martial[i];
                             this.man.martial.name = name;
                             this.man.martial.levelInfo = myMartial.levelInfo;
-                            this.calcMartialLevel();
-                            this.man.kongfu = this.man.kongfu.concat(myMartial.kongfu);
+                            this.calc({martial: 1});
+                            this.getMartialKongfu(name,this.man.martial.level);
                             break;
                         }
                     }
                 }
                 this.print(this.man.name + '加入了' + this.man.martial.name + '，成为了一位' + this.man.martial.level);
-                this.calcAge(1);
+                this.calc({time: 1});
             },
-            choose: function (x) {
-                this.calcAge(x);
-                this.calcNum();
-            },
-            switchTab: function (x) {
-                this.switchTabs = x;
+            getMartialKongfu: function (name, martialLevel) {
+                for (var i = 0, length = this.martial.length; i < length; i++) {
+                    if (name == this.martial[i].name) {
+                        var myMartial = this.martial[i];
+                        this.man.kongfu = this.man.kongfu.concat(myMartial.kongfu[martialLevel]);
+                        break;
+                    }
+                }
+                this.print(this.man.name + '学习到了' + martialLevel + '等级的武功');
             }
+
         }
     });
 </script>
