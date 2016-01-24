@@ -88,6 +88,34 @@ var jianghuInfo = {
                         proficiency: 0
                     }
                 ]
+            },
+            work: {
+                '沙弥': [
+                    {
+                        name: '挑水',
+                        probability: 0.4,
+                        print: '你认真的挑了一个月的水，感觉自己更健壮了。',
+                        effect: function(){
+                            jianghu.calc({body: 1,time: 1})
+                        }
+                    },
+                    {
+                        name: '打柴',
+                        probability: 0.8,
+                        print: '你认真的打了一个月的柴（哪有那么多柴……），感觉自己更健壮了。',
+                        effect: function(){
+                            jianghu.calc({body: 1,time: 1})
+                        }
+                    },
+                    {
+                        name: '打扫藏经阁',
+                        probability: 1,
+                        print: '你认真的打扫藏经阁，无意当中读了不少佛经。',
+                        effect: function(){
+                            jianghu.calc({mind: 1,time: 1,kongfu:{name:'少林佛法',num:2}})
+                        }
+                    }
+                ]
             }
         }
     ]

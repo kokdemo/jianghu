@@ -129,11 +129,11 @@
                                  aria-label="...">
                                 <div class="btn-group" role="group">
                                     <button type="button" class="btn btn-default"
-                                            v-on:click="martial_getKongfu(man.level)">请师父传功
+                                            v-on:click="martial_getKongfu(man.martial.name,man.martial.level)">请师父传功
                                     </button>
                                 </div>
                                 <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-default" v-on:click="martialWork()">干些杂活
+                                    <button type="button" class="btn btn-default" v-on:click="martial_work(man.martial.name,man.martial.level)">干些杂活
                                     </button>
                                 </div>
                                 <div class="btn-group" role="group">

@@ -106,6 +106,7 @@ var jianghu = new Vue({
             if (input.mind) {
                 this.man.mind.base += input.mind
             }
+            // 输入内容包括 功夫的名字name，功夫的数量num
             if (input.kongfu) {
                 var kflength = this.man.kongfu.length;
                 for (var i = 0; i < kflength; i++) {
@@ -155,14 +156,15 @@ var jianghu = new Vue({
                         var myMartial = this.martial[i];
                         this.man.martial.name = name;
                         this.man.martial.levelInfo = myMartial.levelInfo;
-                        this.print(this.man.name + '加入了' + this.man.martial.name + '，成为了一位' + this.man.martial.level);
                         this.calc({martial: 1,time: 1});
+                        this.print(this.man.name + '加入了' + this.man.martial.name + '，成为了一位' + this.man.martial.level);
                         this.martial_getKongfu(name,this.man.martial.level);
                         break;
                     }
                 }
             }
         },
+        //传功
         martial_getKongfu: function (name, martialLevel) {
             for (var i = 0, length = this.martial.length; i < length; i++) {
                 if (name == this.martial[i].name) {
@@ -173,6 +175,26 @@ var jianghu = new Vue({
                 }
             }
             this.print('你的修为尚不足以学习更高层次的武功');
+        },
+        //门派任务
+        martial_work: function(name, martialLevel){
+            var random = Math.random();
+            var printText = '';
+            for (var i = 0, length = this.martial.length; i < length; i++) {
+                if (name == this.martial[i].name) {
+                    var martialWork = this.martial[i].work[martialLevel];
+                    for(var j = 0,length2 = martialWork.length;j<length2;j++){
+                        if(random < martialWork[j].probability){
+                            martialWork[j].effect();
+                            printText = martialWork[j].print;
+                            break;
+                        }
+                    }
+                    this.print(printText);
+                    return 0
+                }
+            }
         }
+
     }
 });
