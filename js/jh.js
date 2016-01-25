@@ -4,7 +4,7 @@
 var jianghu = new Vue({
     el: 'body',
     data: {
-        start: true,
+        start: false,
         man: {
             name: '无名氏',
             from: '天涯海角',
